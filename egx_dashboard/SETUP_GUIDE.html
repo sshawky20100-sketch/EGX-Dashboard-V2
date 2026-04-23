@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EGX Dashboard — Setup Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0D1117; --surface: #161B22; --border: #30363D;
+    --green: #00C896; --red: #FF4B6E; --gold: #FFD166;
+    --blue: #3D8EFF; --text: #E6EDF3; --muted: #8B949E;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif;
+         line-height: 1.7; padding: 0; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #0D1117 0%, #1a2332 50%, #0D1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% -20%, rgba(61,142,255,0.12) 0%, transparent 70%);
+  }
+  .header-badge {
+    display: inline-block;
+    background: rgba(255,209,102,0.1);
+    border: 1px solid rgba(255,209,102,0.3);
+    color: var(--gold);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .header h1 {
+    font-size: 2.6rem; font-weight: 700; color: var(--text);
+    line-height: 1.2; margin-bottom: 0.5rem;
+  }
+  .header h1 span { color: var(--gold); }
+  .header p { color: var(--muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+
+  /* Layout */
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* Step cards */
+  .step {
+    display: flex; gap: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .step:hover { border-color: var(--blue); }
+  .step-number {
+    flex-shrink: 0;
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, #1e3a5f, #2d5a8e);
+    border: 1px solid var(--blue);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600; font-size: 1rem;
+    color: var(--blue);
+  }
+  .step-content { flex: 1; min-width: 0; }
+  .step-title {
+    font-size: 1.1rem; font-weight: 600; color: var(--text);
+    margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .step-desc { color: var(--muted); font-size: 0.9rem; margin-bottom: 0.75rem; }
+
+  /* Code blocks */
+  .code-block {
+    background: #0a0d12;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.83rem;
+    overflow-x: auto;
+    position: relative;
+  }
+  .code-block .comment { color: var(--muted); }
+  .code-block .cmd     { color: var(--green); }
+  .code-block .kw      { color: var(--blue); }
+  .code-block .str     { color: var(--gold); }
+  .code-block .out     { color: #ccc; }
+
+  pre { white-space: pre-wrap; word-break: break-all; }
+
+  /* OS tabs */
+  .os-tabs { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .os-tab {
+    padding: 4px 12px;
+    border-radius: 4px 4px 0 0;
+    font-size: 0.78rem;
+    font-family: 'IBM Plex Mono', monospace;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    background: var(--bg);
+    color: var(--muted);
+  }
+  .os-tab.active { background: #0a0d12; color: var(--gold); border-color: var(--border); }
+
+  /* Tip boxes */
+  .tip {
+    border-radius: 8px; padding: 0.75rem 1rem;
+    font-size: 0.88rem; margin-top: 0.75rem;
+    display: flex; gap: 0.5rem; align-items: flex-start;
+  }
+  .tip-info    { background: rgba(61,142,255,0.1);  border-left: 3px solid var(--blue); }
+  .tip-success { background: rgba(0,200,150,0.08);  border-left: 3px solid var(--green);}
+  .tip-warning { background: rgba(255,209,102,0.08);border-left: 3px solid var(--gold); }
+  .tip-icon { font-size: 1rem; flex-shrink: 0; }
+  .tip-body { color: var(--text); }
+  .tip-body strong { color: var(--gold); }
+
+  /* Section headings */
+  .section-heading {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 2.5rem 0 1rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .section-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Feature table */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0 2rem;
+  }
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem;
+  }
+  .feature-card .icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
+  .feature-card .name { font-weight: 600; color: var(--text); font-size: 0.95rem; }
+  .feature-card .desc { color: var(--muted); font-size: 0.83rem; margin-top: 0.2rem; }
+
+  /* Structure tree */
+  .tree {
+    background: #0a0d12;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.83rem;
+    line-height: 1.9;
+  }
+  .tree .dir  { color: var(--blue); font-weight: 600; }
+  .tree .file { color: var(--text); }
+  .tree .note { color: var(--muted); }
+
+  /* FAQ */
+  .faq-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  .faq-q { color: var(--gold); font-weight: 600; margin-bottom: 0.3rem; }
+  .faq-a { color: var(--muted); font-size: 0.9rem; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.82rem;
+    border-top: 1px solid var(--border);
+  }
+  .footer a { color: var(--blue); text-decoration: none; }
+
+  .badge {
+    display: inline-block;
+    background: rgba(0,200,150,0.1);
+    border: 1px solid rgba(0,200,150,0.3);
+    color: var(--green);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">Setup & Deployment Guide</div>
+  <h1>📈 <span>EGX</span> Stock Dashboard</h1>
+  <p>Full walkthrough to run the Egyptian Stock Exchange dashboard locally using Streamlit — from zero to live in under 10 minutes.</p>
+</div>
+
+<div class="container">
+
+  <!-- FEATURES OVERVIEW -->
+  <div class="section-heading">Dashboard Pages</div>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="icon">🏠</div><div class="name">Market Overview</div><div class="desc">All 195 EGX stocks across 20 sectors with live filtering, sorting & sector heatmap</div></div>
+    <div class="feature-card"><div class="icon">📰</div><div class="name">News & Sentiment</div><div class="desc">Multi-source news scraper with AI/NLP sentiment scoring per company</div></div>
+    <div class="feature-card"><div class="icon">💰</div><div class="name">Trading & P&amp;L</div><div class="desc">Trade logger with automatic gross/net profit, commission calculator, history</div></div>
+    <div class="feature-card"><div class="icon">📊</div><div class="name">Technical Analysis</div><div class="desc">SMA, EMA, RSI, MACD, Bollinger Bands with Buy/Sell/Hold signal and explanation</div></div>
+    <div class="feature-card"><div class="icon">🎯</div><div class="name">Recommendation Engine</div><div class="desc">Weighted composite signal (Technical 45% + Monte Carlo 35% + Sentiment 20%)</div></div>
+    <div class="feature-card"><div class="icon">🧮</div><div class="name">Monte Carlo Forecast</div><div class="desc">1,000+ GBM simulations, price distribution, probability of gain/loss, 95% VaR</div></div>
+    <div class="feature-card"><div class="icon">📂</div><div class="name">Portfolio Tracker</div><div class="desc">Holdings P&amp;L, allocation pie chart, per-stock Monte Carlo risk exposure</div></div>
+  </div>
+
+
+  <!-- PREREQUISITES -->
+  <div class="section-heading">Prerequisites</div>
+
+  <div class="step">
+    <div class="step-number">①</div>
+    <div class="step-content">
+      <div class="step-title">✅ Check your Python version</div>
+      <div class="step-desc">Python 3.9 or newer is required. Open a terminal and run:</div>
+      <div class="code-block"><pre><span class="cmd">python --version</span>
+<span class="out">Python 3.11.8   ← anything 3.9+ is fine</span></pre></div>
+      <div class="tip tip-warning">
+        <span class="tip-icon">⚠️</span>
+        <div class="tip-body">If you see <strong>Python 2.x</strong> or get "command not found", download Python from <strong>python.org/downloads</strong>. Make sure to check "Add Python to PATH" during installation on Windows.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">②</div>
+    <div class="step-content">
+      <div class="step-title">📦 Verify pip is available</div>
+      <div class="code-block"><pre><span class="cmd">pip --version</span>
+<span class="out">pip 24.0 from /usr/lib/python3.11/...   ← any version is fine</span></pre></div>
+      <div class="tip tip-info">
+        <span class="tip-icon">ℹ️</span>
+        <div class="tip-body">On some systems you may need <strong>pip3</strong> instead of <strong>pip</strong>. Both work the same way.</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- INSTALLATION -->
+  <div class="section-heading">Installation — Step by Step</div>
+
+  <div class="step">
+    <div class="step-number">1</div>
+    <div class="step-content">
+      <div class="step-title">📁 Extract the project zip</div>
+      <div class="step-desc">Download <strong>egx_dashboard.zip</strong> and unzip it. You should get a folder called <code>egx_dashboard</code>.</div>
+      <div class="os-tabs">
+        <div class="os-tab active">Windows</div>
+        <div class="os-tab">Mac / Linux</div>
+      </div>
+      <div class="code-block"><pre><span class="comment"># Right-click the zip → Extract All → choose a folder
+# OR in PowerShell:</span>
+<span class="cmd">Expand-Archive egx_dashboard.zip -DestinationPath C:\Projects\</span>
+<span class="cmd">cd C:\Projects\egx_dashboard</span></pre></div>
+      <div class="tip tip-info">
+        <span class="tip-icon">📌</span>
+        <div class="tip-body">Remember the full path to this folder. You'll open a terminal here for all remaining steps.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">2</div>
+    <div class="step-content">
+      <div class="step-title">🏠 Create a virtual environment (strongly recommended)</div>
+      <div class="step-desc">A virtual environment keeps this project's packages separate from your system Python — prevents conflicts.</div>
+      <div class="os-tabs">
+        <div class="os-tab active">Windows (PowerShell)</div>
+        <div class="os-tab">Mac / Linux</div>
+      </div>
+      <div class="code-block"><pre><span class="comment"># Make sure you are inside the egx_dashboard folder first:</span>
+<span class="cmd">cd C:\Projects\egx_dashboard</span>
+
+<span class="comment"># Create virtual environment:</span>
+<span class="cmd">python -m venv venv</span>
+
+<span class="comment"># Activate it:</span>
+<span class="cmd">venv\Scripts\activate</span>
+
+<span class="comment"># You should see (venv) appear at the start of your prompt:</span>
+<span class="out">(venv) C:\Projects\egx_dashboard></span></pre></div>
+      <div class="tip tip-success">
+        <span class="tip-icon">✅</span>
+        <div class="tip-body">On <strong>Mac/Linux</strong> the activate command is: <code>source venv/bin/activate</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">3</div>
+    <div class="step-content">
+      <div class="step-title">📦 Install all dependencies</div>
+      <div class="step-desc">This installs Streamlit, Plotly, pandas, BeautifulSoup, and all other required packages.</div>
+      <div class="code-block"><pre><span class="cmd">pip install -r requirements.txt</span>
+
+<span class="out">Collecting streamlit>=1.32.0
+Collecting pandas>=2.0.0
+Collecting plotly>=5.18.0
+...
+Successfully installed streamlit-1.35.0 pandas-2.2.2 plotly-5.22.0 ✓</span></pre></div>
+      <div class="tip tip-warning">
+        <span class="tip-icon">⏱️</span>
+        <div class="tip-body"><strong>This takes 2–5 minutes</strong> on first run. All packages are downloaded from PyPI. An internet connection is required.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">4</div>
+    <div class="step-content">
+      <div class="step-title">🚀 Launch the dashboard</div>
+      <div class="step-desc">This starts the Streamlit web server on your machine.</div>
+      <div class="code-block"><pre><span class="cmd">streamlit run app.py</span>
+
+<span class="out">
+  You can now view your Streamlit app in your browser.
+
+  Local URL:   http://localhost:8501
+  Network URL: http://192.168.1.x:8501    ← share with others on same WiFi
+
+</span></pre></div>
+      <div class="tip tip-success">
+        <span class="tip-icon">🌐</span>
+        <div class="tip-body">Your browser should open <strong>automatically</strong>. If not, manually navigate to <strong>http://localhost:8501</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">5</div>
+    <div class="step-content">
+      <div class="step-title">📊 First load — what happens</div>
+      <div class="step-desc">On your very first visit the app automatically:</div>
+      <div style="margin: 0.5rem 0 0.75rem; color: var(--muted); font-size:0.9rem; line-height:2">
+        1. Tries to fetch live quotes from Yahoo Finance for EGX stocks<br>
+        2. Scrapes financial news from 5 Egyptian/regional sources<br>
+        3. Runs rule-based sentiment analysis on the news<br>
+        4. Caches everything to <code>data/cache/</code> for 15 minutes<br>
+        5. Displays all 195 stocks across 20 sectors
+      </div>
+      <div class="tip tip-info">
+        <span class="tip-icon">💡</span>
+        <div class="tip-body"><strong>If scraping is blocked</strong> (firewall, rate limit, etc.) the app seamlessly falls back to realistic deterministic simulation data — the dashboard remains fully functional and all analytics work identically.</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- OPTIONAL: API KEY -->
+  <div class="section-heading">Optional — AI-Powered Sentiment</div>
+
+  <div class="step">
+    <div class="step-number">★</div>
+    <div class="step-content">
+      <div class="step-title">🤖 Add Anthropic API Key for Claude-powered news analysis</div>
+      <div class="step-desc">Without a key, the built-in rule-based NLP runs (fully functional). With a key, Claude analyzes each article and provides richer company extraction and nuanced sentiment scores.</div>
+      <div class="code-block"><pre><span class="comment"># Option A: Set environment variable before launching</span>
+
+<span class="comment"># Windows PowerShell:</span>
+<span class="cmd">$env:ANTHROPIC_API_KEY="sk-ant-api03-xxxx..."</span>
+<span class="cmd">streamlit run app.py</span>
+
+<span class="comment"># Mac / Linux:</span>
+<span class="cmd">export ANTHROPIC_API_KEY="sk-ant-api03-xxxx..."</span>
+<span class="cmd">streamlit run app.py</span>
+
+<span class="comment"># Option B: Type it directly in the sidebar input field
+# (look for the "Anthropic API Key (optional)" text box)</span></pre></div>
+      <div class="tip tip-info">
+        <span class="tip-icon">🔑</span>
+        <div class="tip-body">Get a free API key at <strong>console.anthropic.com</strong>. The dashboard works 100% without it — the key only enhances the News &amp; Sentiment page.</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- USING THE DASHBOARD -->
+  <div class="section-heading">Using the Dashboard</div>
+
+  <div class="step">
+    <div class="step-number">▶</div>
+    <div class="step-content">
+      <div class="step-title">🔄 Refreshing data</div>
+      <div class="step-desc">The sidebar has two buttons:</div>
+      <div style="margin: 0.5rem 0; font-size:0.9rem; color:var(--muted); line-height:2">
+        • <strong style="color:var(--green)">🔄 Refresh</strong> — clears the disk cache and re-fetches everything from sources<br>
+        • <strong style="color:var(--red)">🗑️ Clear Cache</strong> — removes cached files so next page load re-fetches
+      </div>
+      <div class="tip tip-warning">
+        <span class="tip-icon">⏱️</span>
+        <div class="tip-body">A full refresh makes up to ~80 HTTP requests and takes <strong>30–90 seconds</strong>. Data is then cached for 15 minutes so navigation between pages is instant.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">▶</div>
+    <div class="step-content">
+      <div class="step-title">📊 Running Technical Analysis</div>
+      <div class="step-desc">Go to <strong>Technical Analysis</strong> page → select a stock from the dropdown → adjust the history slider → the chart renders automatically with all indicators.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">▶</div>
+    <div class="step-content">
+      <div class="step-title">🎯 Getting a Recommendation</div>
+      <div class="step-desc">Go to <strong>Recommendation Engine</strong> → select a stock → click <strong>"Generate Recommendation"</strong>. This runs technical analysis + 1,000 Monte Carlo simulations + sentiment lookup, then shows a combined Buy/Sell/Hold with full reasoning.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">▶</div>
+    <div class="step-content">
+      <div class="step-title">📂 Building your Portfolio</div>
+      <div class="step-desc">Go to <strong>Portfolio Tracker</strong> → use the left form to add holdings (symbol, quantity, purchase price, date) → the right panel shows real-time P&amp;L, allocation pie chart, and per-holding Monte Carlo risk.</div>
+    </div>
+  </div>
+
+
+  <!-- PROJECT STRUCTURE -->
+  <div class="section-heading">Project File Structure</div>
+  <div class="tree">
+    <span class="dir">egx_dashboard/</span><br>
+    ├── <span class="file">app.py</span>                   <span class="note">← Main app — run this with streamlit</span><br>
+    ├── <span class="file">requirements.txt</span>         <span class="note">← All Python dependencies</span><br>
+    ├── <span class="dir">.streamlit/</span><br>
+    │   └── <span class="file">config.toml</span>          <span class="note">← Dark theme, server settings</span><br>
+    ├── <span class="dir">data/</span><br>
+    │   ├── <span class="file">egx_universe.py</span>      <span class="note">← 195 EGX stocks with metadata</span><br>
+    │   └── <span class="dir">cache/</span>               <span class="note">← Auto-created, holds JSON cache files</span><br>
+    ├── <span class="dir">scrapers/</span><br>
+    │   └── <span class="file">data_scraper.py</span>      <span class="note">← Yahoo Finance + Mubasher + GBM fallback</span><br>
+    └── <span class="dir">analytics/</span><br>
+        ├── <span class="file">technical.py</span>         <span class="note">← SMA/EMA/RSI/MACD/Bollinger signals</span><br>
+        ├── <span class="file">monte_carlo.py</span>       <span class="note">← GBM 1000+ simulation engine</span><br>
+        ├── <span class="file">sentiment.py</span>         <span class="note">← NLP + Claude API sentiment</span><br>
+        ├── <span class="file">recommendation.py</span>    <span class="note">← Weighted composite signal engine</span><br>
+        ├── <span class="file">portfolio.py</span>         <span class="note">← Holdings & P&L calculations</span><br>
+        └── <span class="file">charts.py</span>            <span class="note">← All Plotly chart builders</span>
+  </div>
+
+
+  <!-- FAQ -->
+  <div class="section-heading">Troubleshooting / FAQ</div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ "ModuleNotFoundError: No module named 'streamlit'"</div>
+    <div class="faq-a">Your virtual environment is not activated. Run <code>venv\Scripts\activate</code> (Windows) or <code>source venv/bin/activate</code> (Mac/Linux) first, then retry.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ "streamlit: command not found"</div>
+    <div class="faq-a">Try <code>python -m streamlit run app.py</code> instead. This uses the Python-module path directly.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ The app loads but shows no stock data</div>
+    <div class="faq-a">Click <strong>🔄 Refresh</strong> in the sidebar. On first load, data fetches automatically, but may need one manual trigger if auto-load timed out.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ All stocks show "simulated" source</div>
+    <div class="faq-a">This is normal if Yahoo Finance is rate-limiting you or if you're offline. The simulated prices are deterministically seeded (same values all day) from real EGX base prices — all analytics work identically.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ Technical chart doesn't show for a stock</div>
+    <div class="faq-a">Some smaller EGX stocks don't have Yahoo Finance history. The app automatically falls back to Geometric Brownian Motion synthetic history, so you'll always get a chart.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ Monte Carlo simulation is slow</div>
+    <div class="faq-a">1,000 simulations typically takes 1–3 seconds. If you chose 5,000 simulations it may take 10–15 seconds. Results are not cached (always fresh). Try 1,000 for speed.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ How do I stop the app?</div>
+    <div class="faq-a">Press <strong>Ctrl + C</strong> in the terminal window where Streamlit is running. The browser tab will show a disconnect message.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ Can I access the dashboard from my phone or another device?</div>
+    <div class="faq-a">Yes! When Streamlit starts, it shows a <strong>Network URL</strong> like <code>http://192.168.x.x:8501</code>. Open that on any device connected to the same WiFi network.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ How do I add more stocks to the universe?</div>
+    <div class="faq-a">Open <code>data/egx_universe.py</code> and add a new entry to the <code>EGX_FULL_UNIVERSE</code> list following the format: <code>("SYMBOL", "Full Company Name", "Sector", "Subsector", base_price, market_cap)</code>. The app picks it up automatically on next restart.</div>
+  </div>
+
+
+  <!-- DEPLOY ONLINE -->
+  <div class="section-heading">Deploy Online (Free — Streamlit Community Cloud)</div>
+
+  <div class="step">
+    <div class="step-number">🌐</div>
+    <div class="step-content">
+      <div class="step-title">Share your dashboard with anyone — no server needed</div>
+      <div class="step-desc">Streamlit Community Cloud hosts Python apps for free at a public URL.</div>
+      <div class="code-block"><pre><span class="comment"># Step 1: Push your code to a GitHub repository</span>
+<span class="cmd">git init</span>
+<span class="cmd">git add .</span>
+<span class="cmd">git commit -m "EGX Dashboard"</span>
+<span class="cmd">git remote add origin https://github.com/YOUR_USERNAME/egx-dashboard.git</span>
+<span class="cmd">git push -u origin main</span>
+
+<span class="comment"># Step 2: Go to share.streamlit.io
+# Step 3: Sign in with GitHub
+# Step 4: Click "New app" → select your repo → set main file: app.py
+# Step 5: Click Deploy → get a public URL like:
+#   https://your-name-egx-dashboard.streamlit.app</span></pre></div>
+      <div class="tip tip-success">
+        <span class="tip-icon">✅</span>
+        <div class="tip-body">Free tier supports unlimited public apps. Add your <strong>ANTHROPIC_API_KEY</strong> in the Streamlit Cloud "Secrets" settings (Settings → Secrets) so the AI sentiment works in production.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  EGX Dashboard · Built with Python + Streamlit · 
+  <a href="https://docs.streamlit.io" target="_blank">Streamlit Docs</a> · 
+  <a href="https://share.streamlit.io" target="_blank">Streamlit Cloud</a>
+  <br><br>
+  ⚠️ For educational purposes only. Not financial advice.
+</div>
+
+</body>
+</html>
